@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router';
 import { useProduct } from '../hooks/useProduct';
 import { useCart } from '../../cart/hook/useCart';
+import { useSelector } from 'react-redux';
 
 const ProductDetail = () => {
     const { id } = useParams();
@@ -11,6 +12,9 @@ const ProductDetail = () => {
     const navigate = useNavigate();
     const { handleGetProductDetails } = useProduct();
     const { handleAddItem } = useCart();
+    const [adding, setAdding] = useState(false);
+    const [message, setMessage] = useState({ text: '', type: '' }); // type: 'success' | 'error'
+    const user = useSelector(state => state.auth.user);
 
     async function fetchProductDetails() {
         try {
@@ -133,22 +137,7 @@ const ProductDetail = () => {
                 className="min-h-screen selection:bg-[#C9A96E]/30 pb-24"
                 style={{ backgroundColor: '#fbf9f6', fontFamily: "'Inter', sans-serif" }}
             >
-                {/* ── Navbar ── */}
-                <nav className="px-8 lg:px-16 xl:px-24 pt-10 pb-6 flex items-center justify-between border-b" style={{ borderColor: '#e4e2df' }}>
-                    <Link to="/"
-                        className="text-sm font-medium tracking-[0.35em] uppercase hover:opacity-80 transition-opacity"
-                        style={{ fontFamily: "'Cormorant Garamond', serif", color: '#C9A96E' }}
-                    >
-                        Snitch.
-                    </Link>
-                    <button
-                        onClick={() => navigate(-1)}
-                        className="text-[10px] uppercase tracking-[0.2em] font-medium transition-colors hover:text-[#C9A96E]"
-                        style={{ color: '#7A6E63' }}
-                    >
-                        Return to Archive
-                    </button>
-                </nav>
+                
 
                 <div className="max-w-7xl mx-auto px-8 lg:px-16 xl:px-24 pt-12 lg:pt-20">
                     <div className="flex flex-col lg:flex-row gap-12 lg:gap-24 items-start">
@@ -219,6 +208,15 @@ const ProductDetail = () => {
                                 {product.title}
                             </h1>
 
+                            {/* Status Message */}
+                            {message.text && (
+                                <div 
+                                    className={`mb-8 p-4 text-[10px] uppercase tracking-[0.1em] border transition-all duration-300 ${message.type === 'error' ? 'border-[#ff000033] bg-[#ff000005] text-[#d93025]' : 'border-[#C9A96E33] bg-[#C9A96E08] text-[#C9A96E]'}`}
+                                >
+                                    {message.text}
+                                </div>
+                            )}
+
                             <div className="mb-8">
                                 <span
                                     className="text-sm uppercase tracking-[0.2em] font-medium"
@@ -275,27 +273,46 @@ const ProductDetail = () => {
                             {/* Actions */}
                             <div className="flex flex-col gap-4 mt-auto">
                                 <button
-                                    className="w-full py-4 text-[11px] uppercase tracking-[0.25em] font-medium transition-all duration-300"
+                                    disabled={adding}
+                                    className="w-full py-4 text-[11px] uppercase tracking-[0.25em] font-medium transition-all duration-300 flex items-center justify-center gap-2"
                                     style={{
-                                        backgroundColor: '#1b1c1a',
+                                        backgroundColor: adding ? '#B5ADA3' : '#1b1c1a',
                                         color: '#fbf9f6',
-                                        fontFamily: "'Inter', sans-serif"
+                                        fontFamily: "'Inter', sans-serif",
+                                        cursor: adding ? 'not-allowed' : 'pointer'
                                     }}
                                     onMouseEnter={e => {
-                                        e.currentTarget.style.backgroundColor = '#C9A96E';
-                                        e.currentTarget.style.color = '#1b1c1a';
+                                        if (!adding) {
+                                            e.currentTarget.style.backgroundColor = '#C9A96E';
+                                            e.currentTarget.style.color = '#1b1c1a';
+                                        }
                                     }}
                                     onMouseLeave={e => {
-                                        e.currentTarget.style.backgroundColor = '#1b1c1a';
-                                        e.currentTarget.style.color = '#fbf9f6';
+                                        if (!adding) {
+                                            e.currentTarget.style.backgroundColor = '#1b1c1a';
+                                            e.currentTarget.style.color = '#fbf9f6';
+                                        }
                                     }}
-                                    onClick={() => {
-                                        handleAddItem({ productId: product._id, variantId: activeVariant?._id })
-                                            
+                                    onClick={async () => {
+                                        if (!user) {
+                                            navigate('/login');
+                                            return;
+                                        }
+
+                                        setAdding(true);
+                                        setMessage({ text: '', type: '' });
+                                        try {
+                                            await handleAddItem({ productId: product._id, variantId: activeVariant?._id });
+                                            setMessage({ text: 'Piece added to your collection', type: 'success' });
+                                        } catch (err) {
+                                            setMessage({ text: err.message, type: 'error' });
+                                        } finally {
+                                            setAdding(false);
+                                        }
                                     }}
 
                                 >
-                                    Add to Cart
+                                    {adding ? 'Adding to bag...' : 'Add to Cart'}
                                 </button>
 
                                 <button

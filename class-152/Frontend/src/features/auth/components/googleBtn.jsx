@@ -4,7 +4,7 @@ const GoogleBtn = () => {
     return (
         <a
             href="/api/auth/google"
-            className="group flex items-center justify-center gap-3 w-full rounded-xl border border-gray-200 bg- White px-5 py-3.5 text-sm font-semibold text-gray-800 shadow-sm transition-all duration-200 ease-out hover:bg-gray-50 hover:shadow-lg hover:border-gray-300 active:scale-[0.97] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-white"
+            className="group flex items-center justify-center gap-3 w-full rounded-xl border border-gray-200 bg-white px-5 py-3.5 text-sm font-semibold text-gray-800 shadow-sm transition-all duration-200 ease-out hover:bg-gray-50 hover:shadow-lg hover:border-gray-300 active:scale-[0.97] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-white"
             aria-label="Continue with Google"
         >
             {/* Google SVG Icon */}

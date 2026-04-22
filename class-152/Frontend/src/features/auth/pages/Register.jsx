@@ -1,11 +1,16 @@
 import React, { useState } from 'react';
 import { useAuth } from "../hook/useAuth";
 import { useNavigate, Link } from 'react-router';
-import GoogleBtn from '../components/GoogleBtn';
+import GoogleBtn from '../components/googleBtn';
+import { useSelector, useDispatch } from 'react-redux';
+import { setError } from '../state/auth.slice';
 
 const Register = () => {
     const { handleRegister } = useAuth();
     const navigate = useNavigate();
+    const dispatch = useDispatch();
+    const { error, loading } = useSelector(state => state.auth);
+
 
     const [formData, setFormData] = useState({
         fullName: '',
@@ -18,18 +23,23 @@ const Register = () => {
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
         setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
+        if (error) dispatch(setError(null));
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        await handleRegister({
-            email: formData.email,
-            contact: formData.contactNumber,
-            password: formData.password,
-            isSeller: formData.isSeller,
-            fullname: formData.fullName
-        });
-        navigate("/");
+        try {
+            await handleRegister({
+                email: formData.email,
+                contact: formData.contactNumber,
+                password: formData.password,
+                isSeller: formData.isSeller,
+                fullname: formData.fullName
+            });
+            navigate("/");
+        } catch (err) {
+            // Error is handled by the hook and stored in Redux
+        }
     };
 
     const inputStyle = {
@@ -120,6 +130,16 @@ const Register = () => {
                             </h1>
                         </div>
 
+                        {/* Error Message */}
+                        {error && (
+                            <div 
+                                className="mb-8 p-4 text-[11px] uppercase tracking-[0.1em] border border-[#ff000033] bg-[#ff000005]"
+                                style={{ color: '#d93025' }}
+                            >
+                                {error}
+                            </div>
+                        )}
+
                         {/* Form */}
                         <form onSubmit={handleSubmit} className="flex flex-col gap-9">
 
@@ -163,7 +183,7 @@ const Register = () => {
                                     value={formData.contactNumber}
                                     onChange={handleChange}
                                     required
-                                    placeholder="+91 98765 43210"
+                                    placeholder="9876543210"
                                     className="w-full bg-transparent outline-none py-3 text-sm transition-colors duration-300"
                                     style={inputStyle}
                                     onFocus={handleFocus}
@@ -259,18 +279,28 @@ const Register = () => {
                             {/* Sign Up Button */}
                             <button
                                 type="submit"
-                                className="w-full py-4 text-[11px] uppercase tracking-[0.25em] font-medium transition-all duration-300 mt-2"
-                                style={{ backgroundColor: '#1b1c1a', color: '#fbf9f6', fontFamily: "'Inter', sans-serif" }}
+                                disabled={loading}
+                                className="w-full py-4 text-[11px] uppercase tracking-[0.25em] font-medium transition-all duration-300 mt-2 flex items-center justify-center gap-2"
+                                style={{ 
+                                    backgroundColor: loading ? '#B5ADA3' : '#1b1c1a', 
+                                    color: '#fbf9f6', 
+                                    fontFamily: "'Inter', sans-serif",
+                                    cursor: loading ? 'not-allowed' : 'pointer'
+                                }}
                                 onMouseEnter={e => {
-                                    e.currentTarget.style.backgroundColor = '#C9A96E';
-                                    e.currentTarget.style.color = '#1b1c1a';
+                                    if (!loading) {
+                                        e.currentTarget.style.backgroundColor = '#C9A96E';
+                                        e.currentTarget.style.color = '#1b1c1a';
+                                    }
                                 }}
                                 onMouseLeave={e => {
-                                    e.currentTarget.style.backgroundColor = '#1b1c1a';
-                                    e.currentTarget.style.color = '#fbf9f6';
+                                    if (!loading) {
+                                        e.currentTarget.style.backgroundColor = '#1b1c1a';
+                                        e.currentTarget.style.color = '#fbf9f6';
+                                    }
                                 }}
                             >
-                                Sign Up
+                                {loading ? 'Processing...' : 'Sign Up'}
                             </button>
 
                             {/* Divider */}
@@ -286,15 +316,15 @@ const Register = () => {
                             {/* Footer Link */}
                             <p className="text-center text-[11px]" style={{ color: '#B5ADA3' }}>
                                 Already have an account?{' '}
-                                <a
-                                    href="/login"
+                                <Link
+                                    to="/login"
                                     className="transition-colors duration-200"
                                     style={{ color: '#7A6E63', textDecoration: 'underline', textUnderlineOffset: '3px' }}
                                     onMouseEnter={e => e.target.style.color = '#C9A96E'}
                                     onMouseLeave={e => e.target.style.color = '#7A6E63'}
                                 >
                                     Sign in
-                                </a>
+                                </Link>
                             </p>
                         </form>
                     </div>

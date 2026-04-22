@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
 import { useAuth } from "../hook/useAuth";
-import { useNavigate } from "react-router";
-import ContinueWithGoogle from '../components/googleBtn';
+import { useNavigate, Link } from "react-router";
 import GoogleBtn from '../components/googleBtn';
+import { useSelector, useDispatch } from 'react-redux';
+import { setError } from '../state/auth.slice';
 
 const Login = () => {
     const { handleLogin } = useAuth();
     const navigate = useNavigate();
+    const dispatch = useDispatch();
+    const { error, loading } = useSelector(state => state.auth);
 
     const [ formData, setFormData ] = useState({
         email: '',
@@ -16,6 +19,7 @@ const Login = () => {
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [ name ]: value }));
+        if (error) dispatch(setError(null));
     };
 
     const handleSubmit = async (e) => {
@@ -27,10 +31,11 @@ const Login = () => {
             } else if (user.role == "seller") {
                 navigate("/seller/dashboard");
             }
-        } catch (error) {
-            console.error("Login failed", error);
+        } catch (err) {
+            // Error is handled by the hook and stored in Redux
         }
     };
+
 
     return (
         <>
@@ -114,6 +119,16 @@ const Login = () => {
                             </h1>
                         </div>
 
+                        {/* Error Message */}
+                        {error && (
+                            <div 
+                                className="mb-8 p-4 text-[11px] uppercase tracking-[0.1em] border border-[#ff000033] bg-[#ff000005]"
+                                style={{ color: '#d93025' }}
+                            >
+                                {error}
+                            </div>
+                        )}
+
                         {/* Form */}
                         <form onSubmit={handleSubmit} className="flex flex-col gap-10">
 
@@ -187,22 +202,28 @@ const Login = () => {
                             {/* Sign In Button */}
                             <button
                                 type="submit"
-                                className="w-full py-4 text-[11px] uppercase tracking-[0.25em] font-medium transition-all duration-300 mt-2"
+                                disabled={loading}
+                                className="w-full py-4 text-[11px] uppercase tracking-[0.25em] font-medium transition-all duration-300 mt-2 flex items-center justify-center gap-2"
                                 style={{
-                                    backgroundColor: '#1b1c1a',
+                                    backgroundColor: loading ? '#B5ADA3' : '#1b1c1a',
                                     color: '#fbf9f6',
-                                    fontFamily: "'Inter', sans-serif"
+                                    fontFamily: "'Inter', sans-serif",
+                                    cursor: loading ? 'not-allowed' : 'pointer'
                                 }}
                                 onMouseEnter={e => {
-                                    e.currentTarget.style.backgroundColor = '#C9A96E';
-                                    e.currentTarget.style.color = '#1b1c1a';
+                                    if (!loading) {
+                                        e.currentTarget.style.backgroundColor = '#C9A96E';
+                                        e.currentTarget.style.color = '#1b1c1a';
+                                    }
                                 }}
                                 onMouseLeave={e => {
-                                    e.currentTarget.style.backgroundColor = '#1b1c1a';
-                                    e.currentTarget.style.color = '#fbf9f6';
+                                    if (!loading) {
+                                        e.currentTarget.style.backgroundColor = '#1b1c1a';
+                                        e.currentTarget.style.color = '#fbf9f6';
+                                    }
                                 }}
                             >
-                                Sign In
+                                {loading ? 'Processing...' : 'Sign In'}
                             </button>
 
                             {/* Divider */}
@@ -218,15 +239,15 @@ const Login = () => {
                             {/* Footer Link */}
                             <p className="text-center text-[11px]" style={{ color: '#B5ADA3' }}>
                                 Don&apos;t have an account?{' '}
-                                <a
-                                    href="/register"
+                                <Link
+                                    to="/register"
                                     className="transition-colors duration-200"
                                     style={{ color: '#7A6E63', textDecoration: 'underline', textUnderlineOffset: '3px' }}
                                     onMouseEnter={e => e.target.style.color = '#C9A96E'}
                                     onMouseLeave={e => e.target.style.color = '#7A6E63'}
                                 >
                                     Sign up
-                                </a>
+                                </Link>
                             </p>
                         </form>
                     </div>
