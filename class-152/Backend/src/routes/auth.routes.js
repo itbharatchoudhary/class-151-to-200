@@ -41,6 +41,6 @@ router.get("/google/callback",
  * @Description Get current user details
  * @Access Private
  */
-router.get("/me", AuthenticateUser, getCurrentUser);
+router.get("/me", getCurrentUser);
 
 export default router

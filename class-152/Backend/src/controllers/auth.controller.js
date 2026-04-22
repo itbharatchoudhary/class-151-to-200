@@ -81,12 +81,11 @@ export const loginUser = async (req, res) => {
 
         const user = await userModel.findOne({ email });
 
-        if (!user) {
+        if (!user || !user.password) {
             return res.status(400).json({ message: "Invalid email or password" });
         }
 
-        // ✅ FIX 1: use bcrypt
-        const isMatch = await bcrypt.compare(password, user.password);
+        const isMatch = await user.comparePassword(password);
 
         if (!isMatch) {
             return res.status(400).json({ message: "Invalid email or password" });
@@ -133,7 +132,24 @@ export const googleCallback = async (req, res) => {
 
 export const getCurrentUser = async (req, res) => {
     try {
-        const user = req.user;
+        const token = req.cookies.token;
+
+        if (!token) {
+            return res.status(200).json({
+                success: true,
+                user: null
+            });
+        }
+
+        const decoded = jwt.verify(token, config.JWT_SECRET);
+        const user = await userModel.findById(decoded.id);
+
+        if (!user) {
+            return res.status(200).json({
+                success: true,
+                user: null
+            });
+        }
 
         res.status(200).json({
             message: "User details fetched successfully",
@@ -148,8 +164,12 @@ export const getCurrentUser = async (req, res) => {
         });
     }
     catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "Server error" });
+        // Even if token is invalid, we return 200 with null user for /me 
+        // to avoid console noise for guests/expired sessions
+        res.status(200).json({
+            success: true,
+            user: null
+        });
     }
 }
 
