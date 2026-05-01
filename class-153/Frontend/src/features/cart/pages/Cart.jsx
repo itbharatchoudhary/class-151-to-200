@@ -45,8 +45,8 @@ const Cart = () => {
     }
 
     const getDisplayImage = (product, variant) => {
-        if (variant?.images?.length) return variant.images[ 0 ].url
-        if (product?.images?.length) return product.images[ 0 ].url
+        if (variant?.images?.length) return variant.images[0].url
+        if (product?.images?.length) return product.images[0].url
         return null
     }
 
@@ -65,26 +65,6 @@ const Cart = () => {
                     className="min-h-screen flex flex-col"
                     style={{ backgroundColor: tokens.surface, fontFamily: "'Inter', sans-serif" }}
                 >
-                    {/* Nav */}
-                    <nav
-                        className="px-8 lg:px-16 xl:px-24 pt-10 pb-6 flex items-center justify-between"
-                        style={{ borderBottom: `1px solid ${tokens.surfaceHighest}` }}
-                    >
-                        <Link
-                            to="/"
-                            className="text-sm font-medium tracking-[0.35em] uppercase hover:opacity-80 transition-opacity"
-                            style={{ fontFamily: "'Cormorant Garamond', serif", color: tokens.primary }}
-                        >
-                            Snitch.
-                        </Link>
-                        <button
-                            onClick={() => navigate(-1)}
-                            className="text-[10px] uppercase tracking-[0.22em] font-medium transition-colors hover:opacity-70"
-                            style={{ color: tokens.secondary }}
-                        >
-                            Return to Archive
-                        </button>
-                    </nav>
 
                     <div className="flex-1 flex flex-col items-center justify-center gap-6 pb-24 px-8">
                         <p
@@ -168,6 +148,7 @@ const Cart = () => {
                                     const qty = item.quantity ?? 1
                                     const attributes = variantDetail?.attributes ?? {}
                                     const stock = variantDetail?.stock
+                                    const variantPrice = variantDetail?.price
 
                                     return (
                                         <div
@@ -217,7 +198,7 @@ const Cart = () => {
 
                                                     {Object.keys(attributes).length > 0 && (
                                                         <div className="flex flex-wrap gap-2 mb-3">
-                                                            {Object.entries(attributes).map(([ key, val ]) => (
+                                                            {Object.entries(attributes).map(([key, val]) => (
                                                                 <span
                                                                     key={key}
                                                                     className="px-3 py-1 text-[9px] uppercase tracking-[0.18em] font-medium"
@@ -249,6 +230,27 @@ const Cart = () => {
                                                             {stock > 0 ? `${stock} in stock` : 'Out of stock'}
                                                         </p>
                                                     )}
+                                                    {
+                                                        displayPrice.amount !== variantPrice && (
+                                                            < >
+                                                                {
+                                                                    displayPrice.amount > variantPrice
+                                                                        ? <p
+                                                                            className="text-[9px] uppercase tracking-[0.15em] font-medium"
+                                                                            style={{ color: '#5a7a5a' }}
+                                                                        >
+                                                                            Discounted from {formatCurrency(variantPrice.amount, variantPrice.currency)}
+                                                                        </p>
+                                                                        : <p
+                                                                            className="text-[9px] uppercase tracking-[0.15em] font-medium"
+                                                                            style={{ color: tokens.muted }}
+                                                                        >
+                                                                            Variant price {formatCurrency(variantPrice.amount, variantPrice.currency)}
+                                                                        </p>
+
+                                                                }                                                            </ >
+                                                        )
+                                                    }
                                                 </div>
 
                                                 <div className="flex items-center justify-between flex-wrap gap-4">

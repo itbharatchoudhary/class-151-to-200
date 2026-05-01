@@ -55,7 +55,6 @@ const Navbar = () => {
                 ) : (
                     <>
                         <Link to="/login" className="transition-colors hover:text-[#C9A96E]">Sign In</Link>
-                        <Link to="/register" className="transition-colors hover:text-[#C9A96E]">Sign Up</Link>
                     </>
                 )}
             </div>
