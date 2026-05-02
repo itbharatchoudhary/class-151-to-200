@@ -230,25 +230,25 @@ const Cart = () => {
                                                             {stock > 0 ? `${stock} in stock` : 'Out of stock'}
                                                         </p>
                                                     )}
-                                                    {
-                                                        displayPrice.amount !== variantPrice && (
-                                                            < >
-                                                                {
-                                                                    displayPrice.amount > variantPrice
-                                                                        ? <p
-                                                                            className="text-[9px] uppercase tracking-[0.15em] font-medium"
-                                                                            style={{ color: '#5a7a5a' }}
-                                                                        >
-                                                                            Discounted from {formatCurrency(variantPrice.amount, variantPrice.currency)}
-                                                                        </p>
-                                                                        : <p
-                                                                            className="text-[9px] uppercase tracking-[0.15em] font-medium"
-                                                                            style={{ color: tokens.muted }}
-                                                                        >
-                                                                            Variant price {formatCurrency(variantPrice.amount, variantPrice.currency)}
-                                                                        </p>
 
-                                                                }                                                            </ >
+                                                    {
+                                                        displayPrice?.amount !== variantPrice?.amount && variantPrice?.amount !== undefined && displayPrice?.amount !== undefined && (
+                                                            <div className="mt-2">
+                                                                {
+                                                                    displayPrice.amount > variantPrice.amount
+                                                                        ? (
+                                                                            <p className="text-[10px] uppercase tracking-[0.18em] font-medium text-emerald-700">
+                                                                                you save {formatCurrency(displayPrice.amount - variantPrice.amount, displayPrice.currency)}. 
+                                                                                you will get this at {formatCurrency(variantPrice.amount, displayPrice.currency)}
+                                                                            </p>
+                                                                        )
+                                                                        : (
+                                                                            <p className="text-[10px] uppercase tracking-[0.18em] font-medium text-rose-700">
+                                                                                price increased by {formatCurrency(variantPrice.amount - displayPrice.amount, displayPrice.currency)}
+                                                                            </p>
+                                                                        )
+                                                                }
+                                                            </div>
                                                         )
                                                     }
                                                 </div>
