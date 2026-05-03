@@ -98,19 +98,23 @@ const ProductDetail = () => {
 
 
     // Hooks FIRST (always run)
-    const displayImages = useMemo(() => {
-        const variantImgs = activeVariant?.images || [];
+    const productImages = useMemo(() => {
         const productImgs = product?.images || [];
-
-        const allImages = [...variantImgs, ...productImgs].filter(
-            (img, index, self) =>
-                index === self.findIndex(i => i.url === img.url)
-        );
-
-        if (allImages.length > 0) return allImages;
-
+        if (productImgs.length > 0) return productImgs;
         return [{ url: '/snitch_editorial_warm.png' }];
-    }, [activeVariant, product]);
+    }, [product]);
+
+    const variantImages = useMemo(() => {
+        return activeVariant?.images || [];
+    }, [activeVariant]);
+
+    const currentGalleryImages = useMemo(() => {
+        if (activeVariant?.images?.length > 0) return activeVariant.images;
+        return productImages;
+    }, [activeVariant, productImages]);
+
+
+
 
     const displayPrice = activeVariant?.price?.amount
         ? activeVariant.price
@@ -146,12 +150,14 @@ const ProductDetail = () => {
                         <div className="w-full lg:w-[70%] flex flex-col-reverse md:flex-row gap-4 lg:gap-6">
 
                             {/* Thumbnails (Vertical on Desktop, Horizontal on Mobile) */}
-                            {displayImages.length > 1 && (
+                            {currentGalleryImages.length > 1 && (
                                 <div className="flex flex-row md:flex-col gap-4 overflow-x-auto md:overflow-y-auto pb-2 md:pb-0 scrollbar-hide w-full md:w-20 lg:w-24 flex-shrink-0 md:max-h-[calc(100vh-200px)]">
-                                    {displayImages.map((img, idx) => (
+                                    {currentGalleryImages.map((img, idx) => (
                                         <button
                                             key={idx}
                                             onClick={() => setSelectedImage(idx)}
+
+
                                             className={`flex-shrink-0 w-20 md:w-full aspect-[4/5] overflow-hidden transition-all duration-300 ${selectedImage === idx ? 'opacity-100 ring-1 ring-[#C9A96E] ring-offset-2' : 'opacity-50 hover:opacity-100'}`}
                                             style={{ backgroundColor: '#f5f3f0', '--tw-ring-offset-color': '#fbf9f6' }}
                                         >
@@ -166,16 +172,19 @@ const ProductDetail = () => {
                             {/* Main Image */}
                             <div className="relative w-full aspect-4/5 overflow-hidden group" style={{ backgroundColor: '#f5f3f0' }}>
                                 <img
-                                    src={displayImages[selectedImage]?.url || displayImages[0].url}
+                                    src={currentGalleryImages[selectedImage]?.url || currentGalleryImages[0].url}
                                     alt={product.title}
                                     className="w-full h-full object-cover transition-opacity duration-500"
 
                                 />
-                                {displayImages.length > 1 && (
+                                {currentGalleryImages.length > 1 && (
                                     <>
                                         <button
-                                            onClick={() => setSelectedImage(prev => prev === 0 ? displayImages.length - 1 : prev - 1)}
+                                            onClick={() => setSelectedImage(prev => prev === 0 ? currentGalleryImages.length - 1 : prev - 1)}
                                             className="absolute left-4 lg:left-6 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 border"
+
+
+
                                             style={{ backgroundColor: 'rgba(251,249,246,0.8)', borderColor: '#e4e2df', color: '#1b1c1a' }}
                                             onMouseEnter={e => e.currentTarget.style.backgroundColor = '#fbf9f6'}
                                             onMouseLeave={e => e.currentTarget.style.backgroundColor = 'rgba(251,249,246,0.8)'}
@@ -184,8 +193,11 @@ const ProductDetail = () => {
                                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.2" d="M15 19l-7-7 7-7" /></svg>
                                         </button>
                                         <button
-                                            onClick={() => setSelectedImage(prev => prev === displayImages.length - 1 ? 0 : prev + 1)}
+                                            onClick={() => setSelectedImage(prev => prev === currentGalleryImages.length - 1 ? 0 : prev + 1)}
                                             className="absolute right-4 lg:right-6 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 border"
+
+
+
                                             style={{ backgroundColor: 'rgba(251,249,246,0.8)', borderColor: '#e4e2df', color: '#1b1c1a' }}
                                             onMouseEnter={e => e.currentTarget.style.backgroundColor = '#fbf9f6'}
                                             onMouseLeave={e => e.currentTarget.style.backgroundColor = 'rgba(251,249,246,0.8)'}
@@ -229,6 +241,8 @@ const ProductDetail = () => {
                             <div className="h-px w-full mb-8" style={{ backgroundColor: '#e4e2df' }} />
 
                             {/* Options/Variants */}
+
+
                             {Object.entries(availableAttributes).map(([attrName, values]) => (
                                 <div key={attrName} className="mb-6">
                                     <h3 className="text-[10px] uppercase tracking-[0.24em] font-medium mb-3" style={{ color: '#C9A96E' }}>
