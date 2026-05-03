@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { useCart } from '../hook/useCart'
 import { Link, useNavigate } from 'react-router'
@@ -21,27 +21,24 @@ const tokens = {
 }
 
 const Cart = () => {
-    const cartItems = useSelector(state => state.cart.items)
+    const cart = useSelector(state => state.cart)
     const { handleGetCart, handleIncrementCartItem, handleDecrementCartItem, handleRemoveFromCart } = useCart()
     const navigate = useNavigate()
+
+    const [quantities, setQuantities] = useState({})
+    const subtotal = cart.totalPrice || 0
+    const shippingFree = subtotal >= 15000
+
 
     useEffect(() => {
         handleGetCart()
     }, [])
 
-    /* ─── Derived totals ─── */
-    const subtotal = cartItems?.reduce((sum, item) => {
-        return sum + (item.price?.amount ?? 0) * (item.quantity ?? 1)
-    }, 0) ?? 0
+    console.log(cart)   
 
-    const freeShippingThreshold = 15000
-    const shippingFree = subtotal >= freeShippingThreshold
-    const totalPieces = cartItems?.length ?? 0
-
-    /* ─── Helpers ─── */
     const getVariantDetails = (product, variantId) => {
         if (!product?.variants || !variantId) return null
-        return product.variants.find(v => v._id === variantId) ?? null
+        return product.variants
     }
 
     const getDisplayImage = (product, variant) => {
@@ -54,7 +51,7 @@ const Cart = () => {
         `${currency} ${Number(amount).toLocaleString('en-IN')}`
 
     /* ─── Empty state ─── */
-    if (!cartItems?.length) {
+    if (!cart.items?.length) {
         return (
             <>
                 <link
@@ -134,12 +131,12 @@ const Cart = () => {
                                     className="text-[10px] uppercase tracking-[0.24em] font-medium"
                                     style={{ color: tokens.muted }}
                                 >
-                                    {totalPieces} {totalPieces === 1 ? 'piece' : 'pieces'}
+                                    {cart?.items?.length} {cart?.items?.length === 1 ? 'item' : 'items'}
                                 </p>
                             </div>
 
                             <div className="flex flex-col gap-6">
-                                {cartItems.map(item => {
+                                {cart.items.map(item => {
                                     const { product, variant: variantId, price } = item
                                     const _id = product._id
                                     const variantDetail = getVariantDetails(product, variantId)
@@ -244,7 +241,8 @@ const Cart = () => {
                                                                         )
                                                                         : (
                                                                             <p className="text-[10px] uppercase tracking-[0.18em] font-medium text-rose-700">
-                                                                                price increased by {formatCurrency(variantPrice.amount - displayPrice.amount, displayPrice.currency)}
+                                                                                price increased by {formatCurrency(variantPrice.amount - displayPrice.amount, displayPrice.currency)}.
+                                                                                you will pay {formatCurrency(variantPrice.amount, displayPrice.currency)}
                                                                             </p>
                                                                         )
                                                                 }
@@ -335,7 +333,7 @@ const Cart = () => {
                                 <div className="flex flex-col gap-4 mb-6">
                                     <div className="flex justify-between items-baseline">
                                         <span className="text-[10px] uppercase tracking-[0.18em]" style={{ color: tokens.secondary }}>Subtotal</span>
-                                        <span className="text-[11px] uppercase tracking-[0.12em] font-medium" style={{ color: tokens.onSurface }}>{formatCurrency(subtotal)}</span>
+                                        <span className="text-[11px] uppercase tracking-[0.12em] font-medium" style={{ color: tokens.onSurface }}>{formatCurrency(cart.totalPrice)}</span>
                                     </div>
                                     <div className="flex justify-between items-baseline">
                                         <span className="text-[10px] uppercase tracking-[0.18em]" style={{ color: tokens.secondary }}>Shipping</span>
