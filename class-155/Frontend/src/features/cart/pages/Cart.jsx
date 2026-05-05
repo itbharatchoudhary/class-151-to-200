@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { useCart } from '../hook/useCart'
 import { Link, useNavigate } from 'react-router'
+import { useRazorpay, RazorpayOrderOptions } from "react-razorpay";
 
 /* ─── Inline styles & tokens matching the "Avenue Montaigne" design system ─── */
 const tokens = {
@@ -22,8 +23,10 @@ const tokens = {
 
 const Cart = () => {
     const cart = useSelector(state => state.cart)
-    const { handleGetCart, handleIncrementCartItem, handleDecrementCartItem, handleRemoveFromCart } = useCart()
+    const { handleGetCart, handleIncrementCartItem, handleDecrementCartItem, handleRemoveFromCart, handleCreateCartOrder , handleVerifyCartOrder } = useCart()
     const navigate = useNavigate()
+    const { error, isLoading, Razorpay } = useRazorpay();
+    const user = useSelector(state => state.user)
 
     const [quantities, setQuantities] = useState({})
     const subtotal = cart.totalPrice || 0
@@ -34,7 +37,7 @@ const Cart = () => {
         handleGetCart()
     }, [])
 
-    console.log(cart)   
+    console.log(cart)
 
     const getVariantDetails = (product, variantId) => {
         if (!product?.variants || !variantId) return null
@@ -49,6 +52,38 @@ const Cart = () => {
 
     const formatCurrency = (amount, currency = 'INR') =>
         `${currency} ${Number(amount).toLocaleString('en-IN')}`
+
+    async function handleCheckout() {
+        const order = await handleCreateCartOrder();
+        console.log(order)
+
+        const options = {
+            key: "rzp_test_SkrfuO2WAs5Muz",
+            amount: order.amount,
+            currency: order.currency,
+            name: "Snitch",
+            description: "Test Transaction",
+            order_id: order.id,
+            handler: async (response) => {
+                const isValid = await handleVerifyCartOrder(response.razorpay_order_id, response.razorpay_payment_id, response.razorpay_signature);
+
+                if (isValid) {
+                    navigate(`/order/success?order_id=${response.razorpay_order_id}`);
+                }
+            },
+            prefill: {
+                name: user?.name,
+                email: user?.email,
+                contact: user?.contact,
+            },
+            theme: {
+                color: tokens.primary,
+            },
+        };
+
+        const razorpayInstance = new Razorpay(options);
+        razorpayInstance.open();
+    }
 
     /* ─── Empty state ─── */
     if (!cart.items?.length) {
@@ -235,7 +270,7 @@ const Cart = () => {
                                                                     displayPrice.amount > variantPrice.amount
                                                                         ? (
                                                                             <p className="text-[10px] uppercase tracking-[0.18em] font-medium text-emerald-700">
-                                                                                you save {formatCurrency(displayPrice.amount - variantPrice.amount, displayPrice.currency)}. 
+                                                                                you save {formatCurrency(displayPrice.amount - variantPrice.amount, displayPrice.currency)}.
                                                                                 you will get this at {formatCurrency(variantPrice.amount, displayPrice.currency)}
                                                                             </p>
                                                                         )
@@ -356,6 +391,7 @@ const Cart = () => {
                                     style={{ backgroundColor: tokens.onSurface, color: tokens.surface }}
                                     onMouseEnter={e => { e.currentTarget.style.backgroundColor = tokens.primary; e.currentTarget.style.color = tokens.onSurface; }}
                                     onMouseLeave={e => { e.currentTarget.style.backgroundColor = tokens.onSurface; e.currentTarget.style.color = tokens.surface; }}
+                                    onClick={handleCheckout}
                                 >
                                     Proceed to Checkout
                                 </button>
@@ -380,4 +416,4 @@ const Cart = () => {
     )
 }
 
-export default Cart
+export default Cart;
