@@ -1,7 +1,7 @@
 import express from 'express';
 import cartModel from '../model/cart.model.js';
 import { AuthenticateUser } from '../middleware/auth.middleware.js';
-import { addToCart ,getCart, incrementCartItemQuantity, decrementCartItemQuantity, removeFromCart } from '../controllers/cart.controller.js';
+import { addToCart ,getCart, incrementCartItemQuantity, decrementCartItemQuantity, removeFromCart,createOrderController, verifyOrderController } from '../controllers/cart.controller.js';
 import { validateAddToCart, validateIncrementCartItemQuantity } from '../validator/cart.validator.js';
 
 
@@ -23,7 +23,7 @@ router.post('/:productId/:variantId', AuthenticateUser, validateAddToCart, addTo
  * @desc Get the user's cart
  * @access Private
  */
-router.get("/", AuthenticateUser, getCart)
+router.get("/", AuthenticateUser, getCart);
 
 
 /**
@@ -33,13 +33,16 @@ router.get("/", AuthenticateUser, getCart)
  * @argument productId - ID of the product to update
  * @argument variantId - ID of the variant to update
  */
-router.patch("/quantity/increment/:productId", AuthenticateUser, validateIncrementCartItemQuantity, incrementCartItemQuantity)
-router.patch("/quantity/increment/:productId/:variantId", AuthenticateUser, validateIncrementCartItemQuantity, incrementCartItemQuantity)
+router.patch("/quantity/increment/:productId", AuthenticateUser, validateIncrementCartItemQuantity, incrementCartItemQuantity);
+router.patch("/quantity/increment/:productId/:variantId", AuthenticateUser, validateIncrementCartItemQuantity, incrementCartItemQuantity);
 
-router.patch("/quantity/decrement/:productId", AuthenticateUser, decrementCartItemQuantity)
-router.patch("/quantity/decrement/:productId/:variantId", AuthenticateUser, decrementCartItemQuantity)
+router.patch("/quantity/decrement/:productId", AuthenticateUser, decrementCartItemQuantity);
+router.patch("/quantity/decrement/:productId/:variantId", AuthenticateUser, decrementCartItemQuantity);
 
-router.delete("/remove/:productId", AuthenticateUser, removeFromCart)
-router.delete("/remove/:productId/:variantId", AuthenticateUser, removeFromCart)
+router.delete("/remove/:productId", AuthenticateUser, removeFromCart);
+router.delete("/remove/:productId/:variantId", AuthenticateUser, removeFromCart);
 
+router.post("/payment/create/order", AuthenticateUser, createOrderController);
+
+router.post("/payment/verify/order", AuthenticateUser, verifyOrderController);
 export default router;
